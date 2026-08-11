@@ -1,15 +1,15 @@
 {
   "name": "luna",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Facebook Messenger group bot that behaves like a real user.",
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Sourav Sahani",
+  "license": "MIT",
   "dependencies": {
     "dotenv": "^17.4.2",
     "fca-riyad": "^37.2.5",
