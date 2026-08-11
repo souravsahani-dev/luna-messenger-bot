@@ -80,7 +80,3 @@ Luna replies:
 - Admins and per-group settings
 - Tracking and fun stats
 - Whatever I learn next
-
-## License
-
-MIT — do whatever you want with it, just don't blame me if Facebook gets angry at your account.
