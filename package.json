@@ -1,0 +1,21 @@
+{
+  "name": "luna",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "fca-riyad": "^37.2.5",
+    "koffi": "^3.1.4",
+    "request": "^2.88.2",
+    "undici": "^6.28.0",
+    "yumi-json-bigint": "^1.0.0"
+  }
+}

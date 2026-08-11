@@ -1,0 +1,6 @@
+node_modules/
+.env
+.DS_Store
+appstate.json
+Fca_Database/
+e2ee_device.json
