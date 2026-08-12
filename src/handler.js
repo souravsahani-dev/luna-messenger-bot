@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('./config');
+const permissions = require('./permissions');
 
 const commands = new Map();
 
@@ -33,7 +34,7 @@ function loadCommands() {
 // Initial load
 loadCommands();
 
-async function handleMessage(senderId, threadId, messageText, sendMessageCallback) {
+async function handleMessage(api, senderId, threadId, messageText, sendMessageCallback) {
   if (!messageText || !messageText.startsWith(config.PREFIX)) {
     return; // Ignore non-commands
   }
@@ -49,9 +50,23 @@ async function handleMessage(senderId, threadId, messageText, sendMessageCallbac
     return;
   }
 
+  // Admin Checks
+  if (command.botAdminOnly) {
+    if (!permissions.isBotAdmin(senderId)) {
+      await sendMessageCallback(threadId, 'Permission denied: This command is restricted to Bot Admins only.');
+      return;
+    }
+  } else if (command.adminOnly) {
+    const isUserAdmin = await permissions.isAdmin(api, senderId, threadId);
+    if (!isUserAdmin) {
+      await sendMessageCallback(threadId, 'Permission denied: This command is restricted to Bot Admins and Group Admins.');
+      return;
+    }
+  }
+
   try {
-    // Pass threadId to command so it can reply in the group
-    await command.execute(senderId, threadId, args, sendMessageCallback, commands, config);
+    // Pass api and threadId to command so it can reply in the group and perform api actions
+    await command.execute(api, senderId, threadId, args, sendMessageCallback, commands, config);
   } catch (error) {
     console.error(`Error executing command ${commandName}:`, error);
     await sendMessageCallback(threadId, 'There was an error trying to execute that command!');

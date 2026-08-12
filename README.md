@@ -11,6 +11,7 @@ I'm building this to learn Node.js and to have fun. It's a long-term project, so
 - Login as a real Facebook account using `appstate.json`
 - Reply to commands in group chats (`/help`, `/ping`, ...)
 - Auto-load commands — drop a file in `src/commands/` and it just works
+- **Robust Admin Controls** — restrict commands to Group Admins or global Bot Admins. Bot Admins can be managed dynamically via commands!
 - Friendly fallback when someone types a command that doesn't exist
 
 The whole thing is built to stay flexible: commands are single files, settings live in `.env`, and the core code almost never needs to change.
@@ -60,7 +61,9 @@ module.exports = {
   name: 'ping',
   description: 'Replies with Pong!',
   aliases: ['p'],
-  async execute(senderId, threadId, args, sendMessageCallback, commandsMap, config) {
+  // adminOnly: true, // Optional: Restrict to Group Admins and Bot Admins
+  // botAdminOnly: true, // Optional: Restrict strictly to Bot Admins
+  async execute(api, senderId, threadId, args, sendMessageCallback, commandsMap, config) {
     await sendMessageCallback(threadId, 'Pong!');
   }
 };
@@ -77,6 +80,6 @@ Luna replies:
 ## Coming someday (slowly)
 
 - Welcome messages when someone joins a group
-- Admins and per-group settings
+- Per-group settings (e.g. custom prefixes)
 - Tracking and fun stats
 - Whatever I learn next

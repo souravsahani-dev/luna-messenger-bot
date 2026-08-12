@@ -57,7 +57,7 @@ login({ appState }, (err, api) => {
       };
 
       // Pass message to our command handler, passing threadId instead of senderId so the bot replies in the group
-      await handler.handleMessage(senderId, threadId, messageText, sendMessageCallback);
+      await handler.handleMessage(api, senderId, threadId, messageText, sendMessageCallback);
     }
   });
 });
