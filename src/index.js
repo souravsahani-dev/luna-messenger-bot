@@ -4,6 +4,11 @@ const login = require('fca-riyad');
 const config = require('./config');
 const handler = require('./handler');
 
+// Catch unhandled promise rejections so they don't crash the process silently
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[ERROR] Unhandled Rejection:', reason);
+});
+
 console.log(`Starting ${config.BOT_NAME}...`);
 
 const appStatePath = path.resolve(__dirname, '..', config.APPSTATE_PATH);
@@ -14,7 +19,14 @@ if (!fs.existsSync(appStatePath)) {
   process.exit(1);
 }
 
-const appState = JSON.parse(fs.readFileSync(appStatePath, 'utf8'));
+let appState;
+try {
+  appState = JSON.parse(fs.readFileSync(appStatePath, 'utf8'));
+} catch (err) {
+  console.error(`[ERROR] Failed to parse ${appStatePath}:`, err.message);
+  console.error('The file must be valid JSON. Please re-export your Facebook cookies and try again.');
+  process.exit(1);
+}
 
 login({ appState }, (err, api) => {
   if (err) {
@@ -44,7 +56,8 @@ login({ appState }, (err, api) => {
 
       if (!messageText) return;
 
-      console.log(`Received message from ${senderId} in thread ${threadId}: ${messageText}`);
+      // Log only metadata, not message content, to protect user privacy
+      console.log(`Received message from ${senderId} in thread ${threadId} (${messageText.length} chars)`);
 
       // Callback function to send messages back using FCA
       const sendMessageCallback = async (targetId, text) => {
