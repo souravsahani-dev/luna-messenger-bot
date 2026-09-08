@@ -5,6 +5,45 @@ const permissions = require('./permissions');
 
 const commands = new Map();
 
+// Rate limiting: max 5 commands per 10 seconds per user
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 10 * 1000;
+const userCommandTimestamps = new Map();
+
+/**
+ * Checks if a user has exceeded their command rate limit.
+ * @param {string} senderId The user's ID
+ * @returns {boolean} True if the user is rate-limited
+ */
+function isRateLimited(senderId) {
+  const now = Date.now();
+  const timestamps = userCommandTimestamps.get(senderId) || [];
+  
+  // Filter to only timestamps within the current window
+  const recent = timestamps.filter(ts => now - ts < RATE_LIMIT_WINDOW_MS);
+  
+  if (recent.length >= RATE_LIMIT_MAX) {
+    return true;
+  }
+  
+  recent.push(now);
+  userCommandTimestamps.set(senderId, recent);
+  
+  // Clean up old entries periodically to prevent memory growth
+  if (userCommandTimestamps.size > 1000) {
+    for (const [id, tsList] of userCommandTimestamps) {
+      const filtered = tsList.filter(ts => now - ts < RATE_LIMIT_WINDOW_MS);
+      if (filtered.length === 0) {
+        userCommandTimestamps.delete(id);
+      } else {
+        userCommandTimestamps.set(id, filtered);
+      }
+    }
+  }
+  
+  return false;
+}
+
 // Load commands
 function loadCommands() {
   const commandsPath = path.join(__dirname, 'commands');
@@ -37,6 +76,11 @@ loadCommands();
 async function handleMessage(api, senderId, threadId, messageText, sendMessageCallback) {
   if (!messageText || !messageText.startsWith(config.PREFIX)) {
     return; // Ignore non-commands
+  }
+
+  // Rate limiting: silently ignore users who are spamming commands
+  if (isRateLimited(senderId)) {
+    return;
   }
 
   const args = messageText.slice(config.PREFIX.length).trim().split(/ +/);
