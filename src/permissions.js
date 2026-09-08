@@ -5,6 +5,7 @@ const config = require('./config');
 // Simple in-memory cache for thread info to prevent rate limiting
 const threadInfoCache = new Map();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_MAX_SIZE = 500; // Prevent unbounded memory growth
 const ADMINS_FILE = path.resolve(__dirname, '..', 'admins.json');
 
 /**
@@ -57,6 +58,12 @@ async function isAdmin(api, senderId, threadId) {
 
     // Fetch if not in cache or if cache is expired (handled implicitly by not finding it)
     if (!threadInfo) {
+      // Evict oldest entries if cache is at capacity
+      if (threadInfoCache.size >= CACHE_MAX_SIZE) {
+        const oldestKey = threadInfoCache.keys().next().value;
+        threadInfoCache.delete(oldestKey);
+      }
+
       threadInfo = await new Promise((resolve, reject) => {
         api.getThreadInfo(threadId, (err, info) => {
           if (err) return reject(err);
