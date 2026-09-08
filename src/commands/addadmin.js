@@ -3,6 +3,7 @@ const path = require('path');
 const config = require('../config');
 
 const ADMINS_FILE = path.resolve(__dirname, '..', '..', 'admins.json');
+const MAX_UID_LENGTH = 20;
 
 module.exports = {
   name: 'addadmin',
@@ -16,9 +17,9 @@ module.exports = {
 
     const uid = args[0];
 
-    // Regex check for numeric string
-    if (!/^\d+$/.test(uid)) {
-      await sendMessageCallback(threadId, 'Invalid UID. UIDs must contain only numbers.');
+    // Regex check for numeric string with reasonable length limit
+    if (!/^\d+$/.test(uid) || uid.length > MAX_UID_LENGTH) {
+      await sendMessageCallback(threadId, 'Invalid UID. UIDs must contain only numbers and be at most 20 digits.');
       return;
     }
 
@@ -34,7 +35,8 @@ module.exports = {
       }
 
       admins.push(uid);
-      fs.writeFileSync(ADMINS_FILE, JSON.stringify(admins, null, 2), 'utf8');
+      // Write with owner-only permissions (0o600) to protect admin UIDs
+      fs.writeFileSync(ADMINS_FILE, JSON.stringify(admins, null, 2), { encoding: 'utf8', mode: 0o600 });
 
       await sendMessageCallback(threadId, `Successfully added ${uid} as a Bot Admin.`);
     } catch (err) {
